@@ -1,0 +1,8 @@
+/hitmaker
+/hitmaker.exe
+/dist/
+/hitmaker-config/
+/hitmaker-data/
+/my-songs/
+*.test
+coverage.out
