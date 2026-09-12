@@ -1,7 +1,7 @@
 BINDIR ?= $(HOME)/.local/bin
 GO ?= go
 
-.PHONY: build test install dist clean
+.PHONY: build test install dist release demo clean
 build:
 	$(GO) build -trimpath -o hitmaker .
 test:
@@ -17,5 +17,9 @@ dist:
 		if [ "$$os" = windows ]; then ext=.exe; fi; \
 		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch $(GO) build -trimpath -o "dist/hitmaker-$$os-$$arch$$ext" .; \
 	done
+release:
+	GO="$(GO)" python3 scripts/release.py "$(VERSION)"
+demo: build
+	vhs docs/demo.tape
 clean:
 	rm -f hitmaker

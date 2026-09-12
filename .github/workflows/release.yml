@@ -1,0 +1,44 @@
+name: Release
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+  publish:
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: stable
+      - name: Build versioned archives and checksums
+        run: |
+          test -f "docs/releases/$RELEASE_TAG.md"
+          make release VERSION="$RELEASE_TAG"
+      - name: Publish release with all downloads attached
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft > /tmp/release-draft; then
+            test "$(cat /tmp/release-draft)" = true || { echo 'Release already published'; exit 1; }
+            gh release upload "$RELEASE_TAG" dist/release/"$RELEASE_TAG"/* --clobber
+          else
+            gh release create "$RELEASE_TAG" dist/release/"$RELEASE_TAG"/* \
+              --draft --verify-tag --title "Hitmaker $RELEASE_TAG" \
+              --notes-file "docs/releases/$RELEASE_TAG.md"
+          fi
+          gh release edit "$RELEASE_TAG" --draft=false --latest

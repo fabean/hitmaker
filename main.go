@@ -5,9 +5,22 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime/debug"
+	"strings"
 )
 
-var version = "0.1.0"
+// Release builds set this with -ldflags; go install uses module build metadata.
+var version = "dev"
+
+func buildVersion() string {
+	if version != "dev" {
+		return version
+	}
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+		return strings.TrimPrefix(info.Main.Version, "v")
+	}
+	return version
+}
 
 func main() {
 	data := flag.String("data-dir", defaultDataDir(), "directory for songs and exports")
@@ -18,7 +31,7 @@ func main() {
 	ver := flag.Bool("version", false, "print version")
 	flag.Parse()
 	if *ver {
-		fmt.Println("hitmaker " + version)
+		fmt.Println("hitmaker " + buildVersion())
 		return
 	}
 	st := Store{Dir: *data}
