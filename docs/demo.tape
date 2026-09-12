@@ -6,8 +6,8 @@ Require bash
 Set Shell bash
 Set Width 1440
 Set Height 960
-Set FontSize 18
-Set FontFamily "DejaVu Sans Mono"
+Set FontSize 16
+Set FontFamily "CaskaydiaMono Nerd Font Mono"
 Set Theme "Dracula"
 Set Padding 16
 Set WindowBar Colorful
@@ -23,6 +23,7 @@ Sleep 1s
 Show
 Sleep 2s
 Screenshot docs/screenshot.png
+Sleep 500ms
 
 # Replace the current style with the 80s preset.
 Type "j"
@@ -43,6 +44,7 @@ Enter
 Sleep 2s
 
 # Rewrite the chorus; the preview updates as the lyrics change.
+Type "h"
 Type "j"
 Type "c"
 Type "We are the last light on the radio"

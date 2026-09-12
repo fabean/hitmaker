@@ -1,5 +1,6 @@
 BINDIR ?= $(HOME)/.local/bin
 GO ?= go
+VHS ?= vhs
 
 .PHONY: build test install dist release demo clean
 build:
@@ -20,6 +21,7 @@ dist:
 release:
 	GO="$(GO)" python3 scripts/release.py "$(VERSION)"
 demo: build
-	vhs docs/demo.tape
+	$(VHS) docs/demo.tape
+	test -s docs/screenshot.png && test -s docs/demo.gif && test -s docs/demo.mp4
 clean:
 	rm -f hitmaker

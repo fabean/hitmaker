@@ -2,9 +2,46 @@
 
 A small Go / Bubble Tea TUI for writing songs for Suno. Write reusable lyric sections, arrange them by name, and copy the finished lyrics and style into Suno.
 
+[![CI](https://github.com/fabean/hitmaker/actions/workflows/ci.yml/badge.svg)](https://github.com/fabean/hitmaker/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/fabean/hitmaker)](https://github.com/fabean/hitmaker/releases/latest)
+
+![Hitmaker showing reusable lyric sections, an arrangement, and the rendered Suno lyrics](docs/screenshot.png)
+
+<details>
+<summary>Watch the demo: choose a style, arrange a song, edit lyrics, and save</summary>
+
+![VHS recording of Hitmaker being used to edit and arrange a song](docs/demo.gif)
+
+[MP4 video](docs/demo.mp4) · [VHS tape](docs/demo.tape)
+
+</details>
+
 ## Install
 
-Requires Go 1.25 or newer and a terminal. Hitmaker is built with Bubble Tea v2, Bubbles v2, and Lip Gloss v2. Three columns appear at 110+ terminal columns; narrower terminals show the active editor at full width. Minimum size: 48 × 18.
+Hitmaker needs a terminal. Go 1.25 or newer is only needed to build from source or install with Go. Three columns appear at 110+ terminal columns; narrower terminals show the active editor at full width. Minimum size: 48 × 18.
+
+### Download a release
+
+Download an archive from the [latest release](https://github.com/fabean/hitmaker/releases/latest):
+
+| Your system | Archive suffix |
+| --- | --- |
+| Linux, Intel / AMD 64-bit | `linux_amd64.tar.gz` |
+| Linux, ARM64 | `linux_arm64.tar.gz` |
+| macOS, Intel | `darwin_amd64.tar.gz` |
+| macOS, Apple Silicon | `darwin_arm64.tar.gz` |
+| Windows, Intel / AMD 64-bit | `windows_amd64.zip` |
+
+Extract the archive, then run `./hitmaker` on Linux/macOS or `.\hitmaker.exe` on Windows. On Linux/macOS, put it on your PATH with:
+
+```sh
+mkdir -p "$HOME/.local/bin"
+install -m755 hitmaker "$HOME/.local/bin/hitmaker"
+```
+
+Each release includes `SHA256SUMS`. Download it alongside the archive and compare the matching checksum using `sha256sum <archive>` on Linux, `shasum -a 256 <archive>` on macOS, or `Get-FileHash <archive> -Algorithm SHA256` in PowerShell.
+
+### Install with Go
 
 Install directly with Go:
 
@@ -235,3 +272,25 @@ make dist    # cross-compile binaries into dist/
 `make dist` builds standalone executables for Linux (amd64, arm64), macOS (amd64, arm64), and Windows (amd64), with CGO disabled. Files are named `dist/hitmaker-<os>-<arch>` (plus `.exe` on Windows). These are compilation targets; desktop clipboard and terminal behavior should be checked on the target OS. Build outputs are ignored by Git. `make clean` removes the local `hitmaker` executable.
 
 The built-in style library lives in `styles.go`, arrangements in `structures.go`, rendering in `song.go`, and persistence in `storage.go` / `markdown.go`. Custom preset loading is in `config.go`.
+
+### Recreate the screenshots and demo
+
+Install [VHS](https://github.com/charmbracelet/vhs) and its FFmpeg and ttyd dependencies, then run `make demo`. This demo was recorded with VHS v0.11.0 (`go install github.com/charmbracelet/vhs@v0.11.0`); v0.12.0 can exit successfully without producing media due to a cancelled encoding context. Select a specific binary with `make demo VHS=/path/to/vhs`.
+
+The recording uses CaskaydiaMono Nerd Font Mono; install that font or change `FontFamily` in `docs/demo.tape`. VHS launches a headless browser to record the real application. The tape produces `docs/screenshot.png`, `docs/demo.gif`, and `docs/demo.mp4`. `docs/demo.sh` uses temporary song and config directories and removes them when the demo exits.
+
+### Publish a release
+
+CI runs tests with the race detector and vet on the minimum supported Go version and the current stable version, and cross-compiles every supported target. Tagged releases run those checks before publishing.
+
+1. Add release notes to `docs/releases/vX.Y.Z.md` and commit them with the changes on `main`.
+2. Optionally check the archives locally with `make release VERSION=vX.Y.Z` (requires Python 3). Archives and `SHA256SUMS` go into `dist/release/vX.Y.Z/`.
+3. Push `main`, then create and push an annotated stable version tag:
+
+```sh
+git push origin main
+git tag -a vX.Y.Z -m "Hitmaker vX.Y.Z"
+git push origin vX.Y.Z
+```
+
+The [Release workflow](.github/workflows/release.yml) builds from that tag, embeds its version in the binaries, uploads all five archives and their checksums to a draft, and publishes it after the uploads succeed. It uses GitHub's built-in token with release-write permissions; no personal token is needed. Release tags use `vMAJOR.MINOR.PATCH`. Published releases are left intact; use a new version for fixes. If an upload fails while a release is still a draft, rerun the failed workflow to finish it.
